@@ -247,7 +247,10 @@ python-env: ${ES_BEATS}/libbeat/tests/system/requirements.txt
 	@find ${PYTHON_ENV} -type d -name 'dist-packages' -exec sh -c "echo dist-packages > {}.pth" ';'
 
 .PHONY: go-modules-off
-go-modules-off: if [ "$GO111MODULE" != "off"]; then export GO111MODULE="off"
+go-modules-off:
+	@if [ "$GO111MODULE" != "off" ]; then \
+		export GO111MODULE="off"; \
+	fi
 
 .PHONY: test
 test: ## @testing Runs unit and system tests without coverage reports

@@ -147,7 +147,10 @@ python-env:
 	@find $(PYTHON_ENV) -type d -name dist-packages -exec sh -c "echo dist-packages > {}.pth" ';'
 
 .PHONY: go-modules-off
-go-modules-off: if [ "$GO111MODULE" != "off"]; then export GO111MODULE="off"
+go-modules-off:
+	@if [ "$GO111MODULE" != "off" ]; then \
+		export GO111MODULE="off"; \
+	fi
 
 # Tests if apm works with the current code
 .PHONY: test-apm
