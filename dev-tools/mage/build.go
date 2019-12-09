@@ -55,6 +55,9 @@ func DefaultBuildArgs() BuildArgs {
 			"github.com/elastic/beats/libbeat/version.buildTime": "{{ date }}",
 			"github.com/elastic/beats/libbeat/version.commit":    "{{ commit }}",
 		},
+		Env: map[string]string{
+			"GO111MODULE": "off",
+		},
 	}
 
 	if versionQualified {

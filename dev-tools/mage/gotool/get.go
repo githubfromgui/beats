@@ -29,3 +29,4 @@ func runGoGet(opts ...ArgOpt) error {
 
 func (goGet) Update() ArgOpt            { return flagBoolIf("-u", true) }
 func (goGet) Package(pkg string) ArgOpt { return posArg(pkg) }
+func (goGet) GoModulesOff() ArgOpt      { return envArg("GO111MODULE", "off") }

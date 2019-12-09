@@ -64,7 +64,10 @@ func GoImports() error {
 	}
 
 	fmt.Println(">> fmt - goimports: Formatting Go code")
-	if err := sh.Run("go", "get", GoImportsImportPath); err != nil {
+	env := map[string]string{
+		"GO111MODULE": "off",
+	}
+	if err := sh.RunWith(env, "go", "get", GoImportsImportPath); err != nil {
 		return err
 	}
 

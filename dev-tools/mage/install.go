@@ -40,6 +40,7 @@ func InstallVendored(importPath string) error {
 	get := gotool.Get
 	return get(
 		get.Package(filepath.Join(beatDir, "vendor", importPath)),
+		get.GoModulesOff(),
 	)
 }
 
