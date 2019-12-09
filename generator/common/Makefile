@@ -43,9 +43,9 @@ test-build: test
 	$(MAKE) images
 
 ${GOPATH}/bin/mage:
-	go get -u -d github.com/magefile/mage
+	GO111MODULE=off go get -u -d github.com/magefile/mage
 	cd $${GOPATH}/src/github.com/magefile/mage;  \
-	go run bootstrap.go
+	GO111MODULE=off go run bootstrap.go
 
 # Cleans up environment
 .PHONY: clean

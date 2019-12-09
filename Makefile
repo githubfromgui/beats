@@ -12,7 +12,6 @@ REVIEWDOG=reviewdog
 REVIEWDOG_OPTIONS?=-diff "git diff master"
 REVIEWDOG_REPO=github.com/haya14busa/reviewdog/cmd/reviewdog
 XPACK_SUFFIX=x-pack/
-GOMODULES=GO111MODULE=off
 
 # PROJECTS_XPACK_PKG is a list of Beats that have independent packaging support
 # in the x-pack directory (rather than having the OSS build produce both sets
@@ -108,8 +107,8 @@ add-headers: mage
 
 # Corrects spelling errors
 .PHONY: misspell
-misspell:
-	${GOMODULES} go get -u github.com/client9/misspell/cmd/misspell
+misspell: go-modules-off
+	go get -u github.com/client9/misspell/cmd/misspell
 	# Ignore Kibana files (.json)
 	$(FIND) \
 		-not -path "*.json" \
@@ -124,8 +123,8 @@ fmt: add-headers python-env
 	@$(FIND) -name "*.py" -exec $(PYTHON_ENV)/bin/autopep8 --in-place --max-line-length 120 {} \;
 
 .PHONY: lint
-lint:
-	${GOMODULES} @go get $(GOLINT_REPO) $(REVIEWDOG_REPO)
+lint: go-modules-off
+	@go get $(GOLINT_REPO) $(REVIEWDOG_REPO)
 	$(REVIEWDOG) $(REVIEWDOG_OPTIONS)
 
 # Builds the documents for each beat
@@ -146,6 +145,9 @@ python-env:
 	@$(PYTHON_ENV)/bin/pip install -q --upgrade pip autopep8==1.3.5 six
 	@# Work around pip bug. See: https://github.com/pypa/pip/issues/4464
 	@find $(PYTHON_ENV) -type d -name dist-packages -exec sh -c "echo dist-packages > {}.pth" ';'
+
+.PHONY: go-modules-off
+go-modules-off: if [ "$GO111MODULE" != "off"]; then export GO111MODULE="off"
 
 # Tests if apm works with the current code
 .PHONY: test-apm

@@ -35,7 +35,6 @@ GOFILES = $(shell find . -type f -name '*.go' 2>/dev/null)
 GOFILES_NOVENDOR = $(shell find . -type f -name '*.go' -not -path "*/vendor/*" 2>/dev/null)
 GOFILES_ALL = $(GOFILES) $(shell find $(ES_BEATS) -type f -name '*.go' 2>/dev/null)
 GOPACKAGES_STRESSTESTS=$(shell find . -name '*.go' 2>/dev/null | xargs awk 'FNR>1 {nextfile} /\+build.*stresstest/ {print FILENAME; nextfile}' | xargs dirname | uniq)
-GOMODULES=GO111MODULE=off
 SHELL=bash
 ES_HOST?="elasticsearch"
 PWD=$(shell pwd)
@@ -43,7 +42,7 @@ BUILD_DIR?=$(shell pwd)/build
 PKG_BUILD_DIR?=$(BUILD_DIR)/package${PKG_SUFFIX}
 PKG_UPLOAD_DIR?=$(BUILD_DIR)/upload
 COVERAGE_DIR?=${BUILD_DIR}/coverage
-COVERAGE_TOOL?=${GOMODULES} ${BEAT_GOPATH}/bin/gotestcover
+COVERAGE_TOOL?=${BEAT_GOPATH}/bin/gotestcover
 COVERAGE_TOOL_REPO?=github.com/elastic/beats/vendor/github.com/pierrre/gotestcover
 TESTIFY_TOOL_REPO?=github.com/elastic/beats/vendor/github.com/stretchr/testify/assert
 NOW=$(shell date -u '+%Y-%m-%dT%H:%M:%SZ')
@@ -113,10 +112,10 @@ ${BEAT_NAME}.test: $(GOFILES_ALL)
 	@go test $(RACE) -c -coverpkg ${GOPACKAGES_COMMA_SEP}
 
 .PHONY: crosscompile
-crosscompile: ## @build Cross-compile beat for the OS'es specified in GOX_OS variable. The binaries are placed in the build/bin directory.
+crosscompile: go-modules-off ## @build Cross-compile beat for the OS'es specified in GOX_OS variable. The binaries are placed in the build/bin directory.
 crosscompile: $(GOFILES)
 ifneq ($(shell [[ $(BEAT_NAME) == journalbeat ]] && echo true ),true)
-	${GOMODULES} go get github.com/mitchellh/gox
+	go get github.com/mitchellh/gox
 	mkdir -p ${BUILD_DIR}/bin
 	gox -output="${BUILD_DIR}/bin/{{.Dir}}-{{.OS}}-{{.Arch}}" -os="$(strip $(GOX_OS))" -osarch="$(strip $(GOX_OSARCH))" ${GOX_FLAGS}
 endif
@@ -138,14 +137,14 @@ ifndef CHECK_HEADERS_DISABLED
 endif
 
 .PHONY: fmt
-fmt: add-headers python-env ## @build Runs `goimports -l -w` and `autopep8`on the project's source code, modifying any files that do not match its style.
-	${GOMODULES} @go get $(GOIMPORTS_REPO)
+fmt: add-headers python-env go-modules-off ## @build Runs `goimports -l -w` and `autopep8`on the project's source code, modifying any files that do not match its style.
+	@go get $(GOIMPORTS_REPO)
 	@goimports -local ${GOIMPORTS_LOCAL_PREFIX} -l -w ${GOFILES_NOVENDOR}
 	@${FIND} -name '*.py' -exec ${PYTHON_ENV}/bin/autopep8 --in-place --max-line-length 120  {} \;
 
 .PHONY: lint
-lint:
-	${GOMODULES} @go get $(GOLINT_REPO) $(REVIEWDOG_REPO)
+lint: go-modules-off
+	@go get $(GOLINT_REPO) $(REVIEWDOG_REPO)
 	$(REVIEWDOG) $(REVIEWDOG_OPTIONS)
 
 .PHONY: clean
@@ -164,16 +163,16 @@ ci:  ## @build Shortcut for continuous integration. This should always run befor
 
 # Preparation for tests
 .PHONY: prepare-tests
-prepare-tests:
+prepare-tests: go-modules-off
 	mkdir -p ${COVERAGE_DIR}
 	# gotestcover is needed to fetch coverage for multiple packages
-	${GOMODULES} go get ${COVERAGE_TOOL_REPO}
+	go get ${COVERAGE_TOOL_REPO}
 	# testify is needed for unit and integration tests
-	${GOMODULES} go get ${TESTIFY_TOOL_REPO}
+	go get ${TESTIFY_TOOL_REPO}
 
 .PHONY: unit-tests
 unit-tests: ## @testing Runs the unit tests with coverage.  Race is not enabled for unit tests because tests run much slower.
-unit-tests: prepare-tests
+unit-tests: prepare-tests go-modules-off
 	$(COVERAGE_TOOL) $(RACE) -coverprofile=${COVERAGE_DIR}/unit.cov  ${GOPACKAGES}
 
 .PHONY: unit
@@ -246,6 +245,9 @@ python-env: ${ES_BEATS}/libbeat/tests/system/requirements.txt
 	fi
 	@# Work around pip bug. See: https://github.com/pypa/pip/issues/4464
 	@find ${PYTHON_ENV} -type d -name 'dist-packages' -exec sh -c "echo dist-packages > {}.pth" ';'
+
+.PHONY: go-modules-off
+go-modules-off: if [ "$GO111MODULE" != "off"]; then export GO111MODULE="off"
 
 .PHONY: test
 test: ## @testing Runs unit and system tests without coverage reports

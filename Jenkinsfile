@@ -405,14 +405,14 @@ pipeline {
             stage('Generators Metricbeat Linux'){
               steps {
                 withBeatsEnv(){
-                  makeTarget("Generators Metricbeat Linux", "-C generator/metricbeat test")
+                  makeTarget("Generators Metricbeat Linux", "-C generator/_template/metricbeat test")
                 }
               }
             }
             stage('Generators Beat Linux'){
               steps {
                 withBeatsEnv(){
-                  makeTarget("Generators Beat Linux", "-C generator/beat test")
+                  makeTarget("Generators Beat Linux", "-C generator/_template/beat test")
                 }
               }
             }
@@ -421,7 +421,7 @@ pipeline {
               options { skipDefaultCheckout() }
               steps {
                 withBeatsEnv(){
-                  makeTarget("Generators Metricbeat Mac OS X", "-C generator/metricbeat test")
+                  makeTarget("Generators Metricbeat Mac OS X", "-C generator/_template/metricbeat test")
                 }
               }
             }
@@ -430,7 +430,7 @@ pipeline {
               options { skipDefaultCheckout() }
               steps {
                 withBeatsEnv(){
-                  makeTarget("Generators Beat Mac OS X", "-C generator/beat test")
+                  makeTarget("Generators Beat Mac OS X", "-C generator/_template/beat test")
                 }
               }
             }
